@@ -1,5 +1,7 @@
 import 'package:bloc_counter/counter_bloc.dart';
+import 'package:bloc_counter/counter_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,7 +16,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: BlocProvider<CounterBloc>(
+        create: (context) => CounterBloc(),
+        child: MyHomePage(title: 'Flutter Demo Home Page'),
+      ),
     );
   }
 }
@@ -29,38 +34,34 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  CounterBloc _bloc = CounterBloc();
-
   @override
   Widget build(BuildContext context) {
+    final CounterBloc _bloc = BlocProvider.of<CounterBloc>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: StreamBuilder<Object>(
-            stream: _bloc.counter,
-            initialData: 0,
-            builder: (context, snapshot) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    'You have pushed the button this many times:',
-                  ),
-                  Text(
-                    '${snapshot.data}',
-                    style: Theme.of(context).textTheme.headline4,
-                  ),
-                ],
-              );
-            }),
-      ),
+      body: BlocBuilder<CounterBloc, int>(builder: (_, count) {
+        return Center(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'You have pushed the button this many times:',
+            ),
+            Text(
+              '$count',
+              style: Theme.of(context).textTheme.headline4,
+            ),
+          ],
+        ));
+      }),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           FloatingActionButton(
-            onPressed: () => _bloc.onIncrement(),
+            onPressed: () => _bloc.add(IncrementEvent()),
             tooltip: 'Increment',
             child: Icon(Icons.add),
           ),
@@ -68,18 +69,12 @@ class _MyHomePageState extends State<MyHomePage> {
             width: 10,
           ),
           FloatingActionButton(
-            onPressed: () => _bloc.onDecrement(),
+            onPressed: () => _bloc.add(DecrementEvent()),
             tooltip: 'Decrement',
             child: Icon(Icons.remove),
           ),
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _bloc.dispose();
   }
 }
