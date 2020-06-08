@@ -1,10 +1,12 @@
-import 'package:bloc_counter/counter_bloc.dart';
-import 'package:bloc_counter/counter_event.dart';
+import 'package:bloc_counter/counter_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MultiProvider(
+    providers: [ChangeNotifierProvider(create: (_) => CounterModel())],
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -16,52 +18,41 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: BlocProvider<CounterBloc>(
-        create: (context) => CounterBloc(),
-        child: MyHomePage(title: 'Flutter Demo Home Page'),
-      ),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
   Widget build(BuildContext context) {
-    final CounterBloc _bloc = BlocProvider.of<CounterBloc>(context);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(title),
       ),
-      body: BlocBuilder<CounterBloc, int>(builder: (_, count) {
-        return Center(
-            child: Column(
+      body: Center(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
               'You have pushed the button this many times:',
             ),
             Text(
-              '$count',
+              '${context.watch<CounterModel>().count}',
               style: Theme.of(context).textTheme.headline4,
             ),
           ],
-        ));
-      }),
+        ),
+      ),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           FloatingActionButton(
-            onPressed: () => _bloc.add(IncrementEvent()),
+            onPressed: () => context.read<CounterModel>().increment(),
             tooltip: 'Increment',
             child: Icon(Icons.add),
           ),
@@ -69,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
             width: 10,
           ),
           FloatingActionButton(
-            onPressed: () => _bloc.add(DecrementEvent()),
+            onPressed: () => context.read<CounterModel>().decrement(),
             tooltip: 'Decrement',
             child: Icon(Icons.remove),
           ),
